@@ -1,0 +1,73 @@
+loki:
+  enabled: true
+
+promtail:
+  enabled: true
+
+fluent-bit:
+  enabled: false
+
+grafana:
+  enabled: true
+  sidecar:
+    datasources:
+      enabled: true
+  image:
+    tag: 8.1.6
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-issuer
+    path: /
+    pathType: Prefix
+    hosts:
+      - grafana.demo.napier.cloud
+    tls:
+      - secretName: grafana-tls-secret
+        hosts:
+          - grafana.demo.napier.cloud
+  env:
+    GF_SERVER_ROOT_URL: "https://grafana.demo.napier.cloud"
+    GF_AUTH_AZUREAD_NAME: "Azure AD"
+    GF_AUTH_AZUREAD_ENABLED: true
+    GF_AUTH_AZUREAD_ALLOW_SIGN_UP: true
+    GF_AUTH_AZUREAD_CLIENT_ID: ""
+    GF_AUTH_AZUREAD_CLIENT_SECRET: ""
+    GF_AUTH_AZUREAD_SCOPES: "openid email profile"
+    GF_AUTH_AZUREAD_AUTH_URL: ""
+    GF_AUTH_AZUREAD_TOKEN_URL: ""
+    GF_USERS_AUTO_ASSIGN_ORG: true
+    GF_USERS_AUTO_ASSIGN_ORG_ROLE: Editor
+    GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/default/kubernetes-dashboard.json
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      loki-dashboard:
+        file: dashboards/loki-dashboard.json
+      kubernetes-dashboard:
+        file: dashboards/kubernetes-dashboard.json
+      dns-dashboard:
+        file: dashboards/dns-dashboard.json
+      containers-dashboards:
+        file: dashboards/containers-dashboard.json
+
+prometheus:
+  enabled: true
+
+filebeat:
+  enabled: false
+
+logstash:
+  enabled: false
